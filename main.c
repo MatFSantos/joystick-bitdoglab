@@ -1,8 +1,6 @@
 #include <stdio.h>
 
 #include "pico/stdlib.h"
-#include "hardware/timer.h"
-#include "hardware/pio.h"
 #include "hardware/pwm.h"
 #include "hardware/adc.h"
 #include "hardware/clocks.h"
@@ -12,14 +10,12 @@
 #include "modules/led.h"
 #include "modules/push_button.h"
 #include "modules/ssd1306.h"
-#include "modules/ws2812b.h"
 
 #define JOYSTIC_X_PIN 27
 #define JOYSTIC_Y_PIN 26
 #define PWM_DIVISER 20
 #define PWM_WRAP 2000 // aprox 3.5kHz freq
 
-_ws2812b * ws;
 ssd1306_t ssd;
 static volatile uint32_t last_time = 0;
 static volatile bool leds_on = true;
@@ -27,10 +23,6 @@ static volatile bool btn_j_press = false;
 static volatile uint8_t border_count = 0;
 static volatile int x_pos = 0;
 static volatile int y_pos = 0;
-
-char c = '\0';
-char *msg_blue;
-char *msg_green;
 
 /**
  * @brief Initialize the SSD1306 display
@@ -41,7 +33,6 @@ void init_display(){
     ssd1306_config(&ssd);
     ssd1306_send_data(&ssd);
 }
-
 
 /**
  * @brief Initialize the all GPIOs that will be used in project
@@ -120,7 +111,6 @@ void gpio_irq_handler(uint gpio, uint32_t event) {
 }
 
 int main (){
-    PIO pio = pio0;
     bool ok;
     uint16_t x = 0, y = 0, x_led_level = 0, y_led_level = 0;
 
@@ -152,29 +142,26 @@ int main (){
     while (1) {
         adc_select_input(0);
         y = adc_read();
-        y_pos =(int) (-0.00836*y) + 44.08;
+        y_pos =(int) (-0.00836*y) + 44.08; // linear function to convert y 10-4075 for 10-44
         adc_select_input(1);
         x = adc_read();
-        x_pos = (int) (0.0226*x) + 9.774;
+        x_pos = (int)(0.0226 * x) + 9.774; // linear function to convert x 10-4075 for 10-102
         if (leds_on){
-            if (x <= 2100 && x >= 1800 ) x_led_level = 0;
-            else if (x > 2100) x_led_level = x - 2100;
-            else if (x < 1800) x_led_level = (x - 1800)* - 1;
+            if (x <= 2100 && x >= 1800 ) x_led_level = 0; // if joystick on center, turn off LED
+            else if (x > 2100) x_led_level = x - 2100; // if joystick out of center, turn on LED according distance
+            else if (x < 1800) x_led_level = (x - 1800)* - 1; // if joystick out of center, turn on LED according distance
             pwm_set_gpio_level(PIN_RED_LED, x_led_level);
             
-            if (y <= 2100 && y >= 1800 ) y_led_level = 0;
-            else if (y > 2100) y_led_level = y - 2100;
-            else if (y < 1800) y_led_level = (y - 1800)* - 1;
+            if (y <= 2100 && y >= 1800 ) y_led_level = 0; // if joystick on center, turn off LED
+            else if (y > 2100) y_led_level = y - 2100; // if joystick out of center, turn on LED according distance
+            else if (y < 1800) y_led_level = (y - 1800)* - 1; // if joystick out of center, turn on LED according distance
             pwm_set_gpio_level(PIN_BLUE_LED, y_led_level);
-            
-            printf("pow_x: %d, pow_y: %d\n",x_led_level,y_led_level);
         }
         else {
             pwm_set_gpio_level(PIN_BLUE_LED,0);
             pwm_set_gpio_level(PIN_RED_LED,0);
         }
         update_display();
-        printf("x pos: %d; x: %d; y pos: %d; y: %d\n", x_pos, x, y_pos, y);
         sleep_ms(100);
     }
 
