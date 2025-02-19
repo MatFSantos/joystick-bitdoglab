@@ -40,4 +40,4 @@ O **botão A** habilita e desabilita os LEDs azul e vermelho, já o botão do **
 
 ## Vídeo Ensaio
 
-Clique em ***[link do video](https://drive.google.com/file/d/1vsgxwYzQk_zL7GVnioR4XT7UeSVNTtEv/view?usp=sharing)*** para visualizar o vídeo ensaio do projeto.
+Clique em ***[link do video](https://drive.google.com/file/d/1b43aFzuZxrxSeato3uNGRyhxHl_tkZRX/view?usp=sharing)*** para visualizar o vídeo ensaio do projeto.
